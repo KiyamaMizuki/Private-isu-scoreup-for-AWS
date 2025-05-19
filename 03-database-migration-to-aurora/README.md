@@ -7,7 +7,8 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
 <details>
 <summary>RDSのメリット</summary>
-運用負荷削減: 面倒な管理作業を自動化し、本業に専念できます。  
+運用負荷削減: 面倒な管理作業を自動化し、本業に専念できます。
+
 容易な構築・拡張: すぐにDBを開始でき、リソース変更も簡単です。  
 高可用性: 障害時も自動復旧し、サービス停止を最小化します。   
 エンジン選択自由: 人気DBやAuroraなど、最適なエンジンを選べます。  
@@ -157,64 +158,64 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     ```
     </details>
 3. 実行環境で実行計画を確認します。  
-```
-terraform plan
-```  
-エラーが出てないことを確認して適用していきます。  
-```
-terraform aplly
-```
+    ```
+    terraform plan
+    ```  
+    エラーが出てないことを確認して適用していきます。  
+    ```
+    terraform aplly
+    ```
 
-4. ベンチマークの実行
+4. ベンチマークの実行  
 スコアが上がるか、下がるか予想を立てて現在の構成でベンチマークを実行してみてください。
 スコアが変動した原因も考察してみてください。
 
 5. DBの移行  
-Private-isuインスタンスに入ってsqlディレクトリを作成してください
-```
-cd ~/private_isu
-mkdir /home/isucon/private_isu/webapp/sql
-```
-その下記コマンドでダンプファイルを作成してください
-```
-make init
-```
-ダンプファイルを作成したらDBを移行します。  
-```
-bunzip2 -c webapp/sql/dump.sql.bz2 | mysql -h {ホスト指定} -uisuconp -p
-```
+    Private-isuインスタンスに入ってsqlディレクトリを作成してください
+    ```
+    cd ~/private_isu
+    mkdir /home/isucon/private_isu/webapp/sql
+    ```
+    その下記コマンドでダンプファイルを作成してください
+    ```
+    make init
+    ```
+    ダンプファイルを作成したらDBを移行します。  
+    ```
+    bunzip2 -c webapp/sql/dump.sql.bz2 | mysql -h {ホスト指定} -uisuconp -p
+    ```
 
-アプリケーションの向き先を変更します。`~/private-isu/env.sh`ファイルを開き以下の様に編集します。
-```
-PATH=/usr/local/bin:/home/isucon/.local/ruby/bin:/home/isucon/.local/node/bin:/home/isucon/.local/python3/bin:/home/isucon/.local/perl/bin:/home/isucon/.local/php/bin:/home/isucon/.local/php/sbin:/home/isucon/.local/go/bin:/home/isucon/.local/scala/bin:/usr/bin/:/bin/:$PATH
- ISUCONP_DB_USER=isuconp
- ISUCONP_DB_PASSWORD=<実際のパスワードに変更>
- ISUCONP_DB_NAME=isuconp
- ISUCONP_DB_HOST=<Auroraのエンドポイント>
-```
-Private-isuアプリを再起動してください。
-```
-sudo systemctl restart isu-ruby
-```
+    アプリケーションの向き先を変更します。`~/private-isu/env.sh`ファイルを開き以下の様に編集します。
+    ```
+    PATH=/usr/local/bin:/home/isucon/.local/ruby/bin:/home/isucon/.local/node/bin:/home/isucon/.local/python3/bin:/home/isucon/.local/perl/bin:/home/isucon/.local/php/bin:/home/isucon/.local/php/sbin:/home/isucon/.local/go/bin:/home/isucon/.local/scala/bin:/usr/bin/:/bin/:$PATH
+    ISUCONP_DB_USER=isuconp
+    ISUCONP_DB_PASSWORD=<実際のパスワードに変更>
+    ISUCONP_DB_NAME=isuconp
+    ISUCONP_DB_HOST=<Auroraのエンドポイント>
+    ```
+    Private-isuアプリを再起動してください。
+    ```
+    sudo systemctl restart isu-ruby
+    ```
 
 
 6. スロークエリの検出
 AWSコンソール上でRDSを検索し、`Performance insights`から先ほど建てたインスタンスを指定します。  
 ディメンションのトップSQLからボトルネックのクエリを特定しましょう。
 
-<details>
+    <details>
 
-<summary>インデックス追加</summary>
-Performance insightsより以下のクエリがボトルネックとわかりました。  
+    <summary>インデックス追加</summary>
+    Performance insightsより以下のクエリがボトルネックとわかりました。  
 
 
-```SQL
-SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC LIMIT ?;
-```
-こちらのクエリはpost_idが一致する行を全て探索し、その後created_atでソートしています。なのでpost_idに対してインデックスを作成すると高速化します。
+    ```SQL
+    SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC LIMIT ?;
+    ```
+    こちらのクエリはpost_idが一致する行を全て探索し、その後created_atでソートしています。なのでpost_idに対してインデックスを作成すると高速化します。
 
-```
-create index post_id_created_at_idx on comments (post_id, created_at DESC);
-```
+    ```
+    create index post_id_created_at_idx on comments (post_id, created_at DESC);
+    ```
 
-</details>
+    </details>
