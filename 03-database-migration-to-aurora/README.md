@@ -8,9 +8,8 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 <details>
 <summary>RDSのメリット</summary>
 運用負荷削減: 面倒な管理作業を自動化し、本業に専念できます。  
-
-容易な構築・拡張: すぐにDBを開始でき、リソース変更も簡単です。
-高可用性: 障害時も自動復旧し、サービス停止を最小化します。  
+容易な構築・拡張: すぐにDBを開始でき、リソース変更も簡単です。  
+高可用性: 障害時も自動復旧し、サービス停止を最小化します。   
 エンジン選択自由: 人気DBやAuroraなど、最適なエンジンを選べます。  
 コスト最適化: 使った分だけ支払い、初期費用は不要です。  
 堅牢なセキュリティ: 多層的な保護でデータを安全に守ります。  
@@ -24,30 +23,30 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
     ```
     resource "aws_rds_cluster" "private_isu_db" {
-    availability_zones                    = ["ap-northeast-1a", "ap-northeast-1c"]
-    cluster_identifier                    = "private-isu-db"
-    database_insights_mode                = "advanced"
-    database_name                         = "isuconp"
-    db_cluster_parameter_group_name       = "default.aurora-mysql8.0"
-    db_subnet_group_name                  = aws_db_subnet_group.private_isu_aurora.name
-    delete_automated_backups              = false
-    deletion_protection                   = false
-    enabled_cloudwatch_logs_exports       = ["slowquery"]
-    engine                                = "aurora-mysql"
-    engine_lifecycle_support              = "open-source-rds-extended-support-disabled"
-    engine_mode                           = "provisioned"
-    engine_version                        = "8.0.mysql_aurora.3.05.2"
-    master_password                       = var.db_password # sensitive
-    master_username                       = "isuconp"
-    monitoring_interval                   = 60
-    monitoring_role_arn                   = aws_iam_role.private_isu_rds_monitoring_role.arn
-    network_type                          = "IPV4"
-    performance_insights_enabled          = true
-    performance_insights_retention_period = 465
-    port                                  = 3306
-    storage_type                          = "aurora-iopt1"
-    skip_final_snapshot                   = true
-    vpc_security_group_ids                = [aws_security_group.private_isu_aurora.id]
+        availability_zones                    = ["ap-northeast-1a", "ap-northeast-1c"]
+        cluster_identifier                    = "private-isu-db"
+        database_insights_mode                = "advanced"
+        database_name                         = "isuconp"
+        db_cluster_parameter_group_name       = "default.aurora-mysql8.0"
+        db_subnet_group_name                  = aws_db_subnet_group.private_isu_aurora.name
+        delete_automated_backups              = false
+        deletion_protection                   = false
+        enabled_cloudwatch_logs_exports       = ["slowquery"]
+        engine                                = "aurora-mysql"
+        engine_lifecycle_support              = "open-source-rds-extended-support-disabled"
+        engine_mode                           = "provisioned"
+        engine_version                        = "8.0.mysql_aurora.3.05.2"
+        master_password                       = var.db_password # sensitive
+        master_username                       = "isuconp"
+        monitoring_interval                   = 60
+        monitoring_role_arn                   = aws_iam_role.private_isu_rds_monitoring_role.arn
+        network_type                          = "IPV4"
+        performance_insights_enabled          = true
+        performance_insights_retention_period = 465
+        port                                  = 3306
+        storage_type                          = "aurora-iopt1"
+        skip_final_snapshot                   = true
+        vpc_security_group_ids                = [aws_security_group.private_isu_aurora.id]
     }
     ```
 
@@ -57,21 +56,21 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     <summary>RDSインスタンス</summary>
     ```
     resource "aws_rds_cluster_instance" "private_isu_db_instance" {
-    cluster_identifier                    = "private-isu-db"
-    db_parameter_group_name               = "default.aurora-mysql8.0"
-    db_subnet_group_name                  = aws_db_subnet_group.private_isu_aurora.name
-    engine                                = "aurora-mysql"
-    engine_version                        = "8.0.mysql_aurora.3.05.2"
-    identifier                            = "private-isu-aurora-instance"
-    instance_class                        = "db.r5.large"
-    monitoring_interval                   = 60
-    monitoring_role_arn                   = aws_iam_role.private_isu_rds_monitoring_role.arn
-    performance_insights_enabled          = true
-    performance_insights_retention_period = 465
-    tags = {
-        devops-guru-default = "private-isu-aurora"
-    }
-    depends_on = [aws_rds_cluster.private_isu_db]
+        cluster_identifier                    = "private-isu-db"
+        db_parameter_group_name               = "default.aurora-mysql8.0"
+        db_subnet_group_name                  = aws_db_subnet_group.private_isu_aurora.name
+        engine                                = "aurora-mysql"
+        engine_version                        = "8.0.mysql_aurora.3.05.2"
+        identifier                            = "private-isu-aurora-instance"
+        instance_class                        = "db.r5.large"
+        monitoring_interval                   = 60
+        monitoring_role_arn                   = aws_iam_role.private_isu_rds_monitoring_role.arn
+        performance_insights_enabled          = true
+        performance_insights_retention_period = 465
+        tags = {
+            devops-guru-default = "private-isu-aurora"
+        }
+        depends_on = [aws_rds_cluster.private_isu_db]
     }
     ```
     </details>
@@ -80,80 +79,80 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     <summary>ネットワーク</summary>
     ```
     resource "aws_db_subnet_group" "private_isu_aurora" {
-    name       = "private-isu-mysql-subnet-group"
-    subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id]
+        name       = "private-isu-mysql-subnet-group"
+        subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id]
 
-    tags = {
-        Name = "private-isu aurora subnet group"
-    }
-    }
+        tags = {
+            Name = "private-isu aurora subnet group"
+        }
+        }
 
-    resource "aws_subnet" "mysql-a" {
-    vpc_id = aws_vpc.vpc.id
+        resource "aws_subnet" "mysql-a" {
+        vpc_id = aws_vpc.vpc.id
 
-    availability_zone = "ap-northeast-1a"
-    cidr_block        = "10.10.9.0/24"
-    }
+        availability_zone = "ap-northeast-1a"
+        cidr_block        = "10.10.9.0/24"
+        }
 
-    resource "aws_subnet" "mysql-c" {
-    vpc_id = aws_vpc.vpc.id
+        resource "aws_subnet" "mysql-c" {
+        vpc_id = aws_vpc.vpc.id
 
-    availability_zone = "ap-northeast-1c"
-    cidr_block        = "10.10.11.0/24"
-    }
+        availability_zone = "ap-northeast-1c"
+        cidr_block        = "10.10.11.0/24"
+        }
 
-    resource "aws_security_group" "private_isu_aurora" {
-    name   = "Private-isu-aurora"
-    vpc_id = aws_vpc.vpc.id
-    ingress {
-        from_port       = 3306
-        to_port         = 3306
-        protocol        = "tcp"
-        security_groups = [aws_security_group.private_isu_web.id]
-    }
-    }
+        resource "aws_security_group" "private_isu_aurora" {
+        name   = "Private-isu-aurora"
+        vpc_id = aws_vpc.vpc.id
+        ingress {
+            from_port       = 3306
+            to_port         = 3306
+            protocol        = "tcp"
+            security_groups = [aws_security_group.private_isu_web.id]
+        }
+        }
 
-    data "aws_iam_policy" "enhanced_monitoring" {
-    arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
-    }
+        data "aws_iam_policy" "enhanced_monitoring" {
+        arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+        }
 
-    resource "aws_iam_role" "private_isu_rds_monitoring_role" {
-    name = "private-isu-rds-monitoring-role"
-    assume_role_policy = jsonencode({
-        Version = "2012-10-17"
-        Statement = [
-        {
-            Action = "sts:AssumeRole"
-            Effect = "Allow"
-            Principal = {
-            Service = "rds.amazonaws.com"
-            }
-        },
-        {
-            Action = "sts:AssumeRole"
-            Effect = "Allow"
-            Principal = {
-            Service = "monitoring.rds.amazonaws.com"
-            }
-        },
-        {
-            Action = "sts:AssumeRole"
-            Effect = "Allow"
-            Principal = {
-            Service = "ec2.amazonaws.com" # Aurora クラスターのホストインスタンスが EC2 コンポーネントを持つため
-            }
-        },
-        ]
-    })
+        resource "aws_iam_role" "private_isu_rds_monitoring_role" {
+        name = "private-isu-rds-monitoring-role"
+        assume_role_policy = jsonencode({
+            Version = "2012-10-17"
+            Statement = [
+            {
+                Action = "sts:AssumeRole"
+                Effect = "Allow"
+                Principal = {
+                Service = "rds.amazonaws.com"
+                }
+            },
+            {
+                Action = "sts:AssumeRole"
+                Effect = "Allow"
+                Principal = {
+                Service = "monitoring.rds.amazonaws.com"
+                }
+            },
+            {
+                Action = "sts:AssumeRole"
+                Effect = "Allow"
+                Principal = {
+                Service = "ec2.amazonaws.com" # Aurora クラスターのホストインスタンスが EC2 コンポーネントを持つため
+                }
+            },
+            ]
+        })
 
-    tags = {
-        Name = "private-isu RDS Monitoring Role"
-    }
-    }
+        tags = {
+            Name = "private-isu RDS Monitoring Role"
+        }
+        }
 
-    resource "aws_iam_role_policy_attachment" "enhanced_monitoring_attachment" {
-    role       = aws_iam_role.private_isu_rds_monitoring_role.name
-    policy_arn = data.aws_iam_policy.enhanced_monitoring.arn
+        resource "aws_iam_role_policy_attachment" "enhanced_monitoring_attachment" {
+        role       = aws_iam_role.private_isu_rds_monitoring_role.name
+        policy_arn = data.aws_iam_policy.enhanced_monitoring.arn
     }
     ```
     </details>
