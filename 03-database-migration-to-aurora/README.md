@@ -192,6 +192,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     ISUCONP_DB_NAME=isuconp
     ISUCONP_DB_HOST=<Auroraのエンドポイント>
     ```
+
     Private-isuアプリを再起動してください。
     ```
     sudo systemctl restart isu-ruby
