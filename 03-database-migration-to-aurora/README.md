@@ -1,5 +1,5 @@
 # 概要
-本セクションではPrivate-isuインスタンス内で稼働していたMySQLをAmazon RDSに切り出していきます。  
+本セクションではPrivate-isuインスタンス内で稼働していたMySQLをAWSのマネージド型リレーショナルデータベースサービスであるAmazon RDSに切り出していきます。  
 RDSではクラスターと呼ばれる構成で、読み書き可能なプライマリDBインスタンスと、読み取りのみのレプリカDBインスタンス、クラスタボリュームを管理しています。  
 また、アプリケーションからアクセスする為のネットワーク経路もRDS用に必要となっています。  
 
@@ -17,7 +17,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 </details>
 
 # 構築手順
-1. `aurora.tf`ファイルを作成し、編集していきます。
+1. Auroraクラスター、インスタンス、DBサブネットグループ、セキュリティグループなどを定義するTerraformファイル（例: aurora.tf）を作成します。
 2. 以下がRDSクラスタ、RDSインスタンス、ネットワーク(サブネット、セキュリティグループ)を定義するterraformファイルです。コードをコピーして`aurora.tf`ファイルに追加してください。
     <details>
     <summary>RDSクラスタ</summary>
@@ -55,6 +55,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
     <details>
     <summary>RDSインスタンス</summary>
+
     ```
     resource "aws_rds_cluster_instance" "private_isu_db_instance" {
         cluster_identifier                    = "private-isu-db"
@@ -78,6 +79,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
     <details>
     <summary>ネットワーク</summary>
+
     ```
     resource "aws_db_subnet_group" "private_isu_aurora" {
         name       = "private-isu-mysql-subnet-group"
@@ -157,7 +159,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     }
     ```
     </details>
-3. 実行環境で実行計画を確認します。  
+3. 実行環境で実行計画を確認します。 
     ```
     terraform plan
     ```  
@@ -166,11 +168,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     terraform aplly
     ```
 
-4. ベンチマークの実行  
-スコアが上がるか、下がるか予想を立てて現在の構成でベンチマークを実行してみてください。
-スコアが変動した原因も考察してみてください。
-
-5. DBの移行  
+4. DBの移行  
     Private-isuインスタンスに入ってsqlディレクトリを作成してください
     ```
     cd ~/private_isu
@@ -181,6 +179,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     make init
     ```
     ダンプファイルを作成したらDBを移行します。  
+    パスワードは先ほど設定したものを入力してください。
     ```
     bunzip2 -c webapp/sql/dump.sql.bz2 | mysql -h {ホスト指定} -uisuconp -p
     ```
@@ -198,6 +197,9 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     sudo systemctl restart isu-ruby
     ```
 
+5. ベンチマークの実行  
+スコアが上がるか、下がるか予想を立てて現在の構成でベンチマークを実行してみてください。
+スコアが変動した原因も考察してみてください。
 
 6. スロークエリの検出
 AWSコンソール上でRDSを検索し、`Performance insights`から先ほど建てたインスタンスを指定します。  
