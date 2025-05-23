@@ -20,10 +20,10 @@
 # 構築手順
 1. VPC、サブネット、EC2インスタンスなどを定義するTerraformファイル（例: main.tf, vpc.tf, ec2.tf）を作成し、編集していきます。
 
-2. 以下は、基本的なネットワーク（VPC、サブネット、インターネットゲートウェイ、ルートテーブル）、セキュリティグループ、EC2インスタンス（アプリケーションサーバー、ベンチマーカー）を定義するTerraformコードのダミー例です。
+2. 以下は、基本的なネットワーク（VPC、サブネット、インターネットゲートウェイ、ルートテーブル）、セキュリティグループ、EC2インスタンス（アプリケーションサーバー、ベンチマーカー）を定義するTerraformコードです。
 
 <details>
-<summary>Terraformコード例: ネットワークとEC2</summary>
+<summary>ネットワークとEC2</summary>
 
 ```
 # vpc.tf
@@ -198,11 +198,17 @@ resource "aws_eip" "benchmarker_eip" {
     terraform apply
     ```
 
-5. 動作確認
-    各EC2インスタンスにEIP経由でSSH接続できることを確認します。  
+5. 動作確認  
+    各EC2インスタンスにEIP経由でSSM接続できることを確認します。  
+    ```
+    aws ssm start-session --target {instance_ID}
+    ```
     アプリケーションサーバーでPrivate-isuアプリケーションが起動していることを確認します。  
+
     ベンチマーカーからアプリケーションサーバーに対してベンチマークを実行し、初期スコアを記録します。  
+    ```
+    /home/isucon/private_isu/benchmarker/bin/benchmarker -u /home/isucon/private_isu/benchmarker/userdata -t {private-isu ip}
+    ```
 
 6. ベンチマークの実行と考察
     初期構成でのベンチマークスコアを記録してください。これが今後の改善のベースラインとなります。
-

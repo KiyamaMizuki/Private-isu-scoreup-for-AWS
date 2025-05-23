@@ -85,34 +85,34 @@
 
     ```
     WITH logs AS (
-  SELECT 
+    SELECT 
     request_verb AS method,
     regexp_replace(request_url, '^https?://[^/]+', '') AS path,
     target_processing_time,
     request_creation_time
-  FROM alb_access_logs
-  WHERE request_creation_time >= '2025-03-16T10:20:00.000000Z' -- ベンチマーカーの実行時間に設定
-),
-grouped_logs AS (
-  SELECT 
-    method,
-    CASE
-      WHEN path LIKE '/posts?max_created_at=%' THEN '/posts?max_created_at=*'
-      WHEN path LIKE '/posts/%' THEN '/posts/*'
-      WHEN path LIKE '/@%' THEN '/user/*'
-      WHEN path LIKE '/image/%' THEN '/image/*'
-      ELSE path
-    END AS request_url_base,
-    target_processing_time
-    FROM logs
-    )
-    SELECT 
-    method,
-    request_url_base,
-    SUM(target_processing_time) AS total_processing_time
-    FROM grouped_logs
-    GROUP BY method, request_url_base
-    ORDER BY total_processing_time DESC;
+    FROM alb_access_logs
+    WHERE request_creation_time >= '2025-03-16T10:20:00.000000Z' //ベンチマーカーの実行時間に設定
+    ),
+    grouped_logs AS (
+      SELECT 
+        method,
+        CASE
+        WHEN path LIKE '/posts?max_created_at=%' THEN '/posts?max_created_at=*'
+        WHEN path LIKE '/posts/%' THEN '/posts/*'
+        WHEN path LIKE '/@%' THEN '/user/*'
+        WHEN path LIKE '/image/%' THEN '/image/*'
+        ELSE path
+      END AS request_url_base,
+      target_processing_time
+      FROM logs
+      )
+      SELECT 
+      method,
+      request_url_base,
+      SUM(target_processing_time) AS total_processing_time
+      FROM grouped_logs
+      GROUP BY method, request_url_base
+      ORDER BY total_processing_time DESC;
     ```
 
     </details>

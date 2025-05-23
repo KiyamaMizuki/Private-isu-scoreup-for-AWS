@@ -15,7 +15,7 @@
 # 構築手順
 1. CloudFrontディストリビューションを定義するTerraformファイル（例: cloudfront.tf）を作成します。
 
-2. 以下は、CloudFrontディストリビューションを定義するTerraformコードのです。オリジンは前のステップで作成したALBを指定します。
+2. 以下は、CloudFrontディストリビューションを定義するTerraformコードです。オリジンは前のステップで作成したALBを指定します。
 
     <details>
     <summary>CloudFront</summary>
