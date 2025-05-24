@@ -1,4 +1,5 @@
 # 概要
+![04](../images/Private-isu04.png)  
 本セクションでは、Private-isuアプリケーションの前にApplication Load Balancer (ALB) を導入します。ALBはOSI参照モデルの第7層（アプリケーション層）で動作するロードバランサーで、HTTP/HTTPSトラフィックを複数のターゲット（この時点ではEC2インスタンス1台）に分散します。
 
 ALBを導入する主な目的は以下の2点です。
