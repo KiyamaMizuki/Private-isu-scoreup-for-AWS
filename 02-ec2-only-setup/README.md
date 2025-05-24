@@ -18,9 +18,38 @@
 </details>
 
 # 構築手順
-1. VPC、サブネット、EC2インスタンスなどを定義するTerraformファイル（例: main.tf, vpc.tf, ec2.tf）を作成し、編集していきます。
+1. terraformのmainファイル、VPC、サブネット、EC2インスタンスなどを定義するTerraformファイル（例: main.tf, vpc.tf, ec2.tf）を作成し、編集していきます。
 
 2. 以下は、基本的なネットワーク（VPC、サブネット、インターネットゲートウェイ、ルートテーブル）、セキュリティグループ、EC2インスタンス（アプリケーションサーバー、ベンチマーカー）を定義するTerraformコードです。
+
+  <details>
+  <summary>terraform main</summary>
+
+  ```
+  terraform {
+    required_version = "1.11.2"
+
+    required_providers {
+      aws = {
+        source  = "hashicorp/aws"
+        version = "5.91.0"
+      }
+    }
+  }
+
+  provider "aws" {
+    region              = "ap-northeast-1"
+    allowed_account_ids = [""] #あなたの発行したAWSアカウントのIDを入力してください
+    default_tags {
+      tags = {
+        TerraformName = "CTOA-aws-handsON"
+      }
+    }
+  }
+
+  ```
+  
+  </details>
 
   <details>
   <summary>ネットワーク</summary>
