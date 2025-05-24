@@ -1,4 +1,5 @@
 # 概要
+![06](../images/Private-isu06.png) 
 本セクションでは、Amazon CloudFront を導入し、静的ファイル（CSS, JavaScript, 一部の画像など）をエッジロケーションにキャッシュすることで、オリジンサーバー（ALB経由のEC2）への負荷を軽減し、ユーザーへのレスポンス速度を向上させます。
 
 <details>
