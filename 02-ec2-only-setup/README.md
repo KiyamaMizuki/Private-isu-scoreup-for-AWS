@@ -27,8 +27,6 @@
 
   ```
   terraform {
-    required_version = "1.11.2"
-
     required_providers {
       aws = {
         source  = "hashicorp/aws"
@@ -55,9 +53,8 @@
   <summary>vpc.tf</summary>
 
   ```
-  # vpc.tf
   resource "aws_vpc" "main" {
-    cidr_block = "10.0.0.0/16" 
+    cidr_block = "10.10.0.0/16" 
     tags = {
       Name = "private-isu-vpc"
     }
@@ -87,8 +84,6 @@
     subnet_id      = aws_subnet.public_1a.id
     route_table_id = aws_route_table.public_1a_rtb.id
   }
-
-  # security_group.tf
   ```
 
   </details>
@@ -146,7 +141,7 @@
       from_port       = 80
       to_port         = 80
       protocol        = "tcp"
-      security_groups = [aws_security_group.alb.id]
+      cidr_blocks      = ["0.0.0.0/0"]
     }
 
     egress {
@@ -225,16 +220,27 @@
     ```
 
 5. 動作確認  
-    各EC2インスタンスにEIP経由でSSM接続できることを確認します。  
+    まずはアプリケーションサーバーでPrivate-isuアプリケーションが起動していることを確認します。  
+    `http://{private-isu ip}`にアクセスし、画面が表示されるか確認しましょう。
+
+    次に、各EC2インスタンスにSSMで接続できることを確認します。接続後にユーザー変更も行っておきます。  
     ```
     aws ssm start-session --target {instance_ID}
-    ```
-    アプリケーションサーバーでPrivate-isuアプリケーションが起動していることを確認します。  
-
-    ベンチマーカーからアプリケーションサーバーに対してベンチマークを実行し、初期スコアを記録します。  
-    ```
-    /home/isucon/private_isu/benchmarker/bin/benchmarker -u /home/isucon/private_isu/benchmarker/userdata -t {private-isu ip}
+    
+    # ユーザー変更
+    sudo su - isucon
     ```
 
-6. ベンチマークの実行と考察
-    初期構成でのベンチマークスコアを記録してください。これが今後の改善のベースラインとなります。
+6. ベンチマークの初回実行
+
+    ベンチマーカーで以下のコマンドを実行すると、アプリケーションサーバーに対してベンチマークを実行できます。
+    ```
+    /home/isucon/private_isu/benchmarker/bin/benchmarker -u /home/isucon/private_isu/benchmarker/userdata -t http://{private-isu ip}
+    ```
+
+    ここで、アプリケーションサーバーで`top`コマンドを実行すると、マシンの負荷を観測することができます。初期状態では、特にMySQLのCPU利用率が非常に高いことが分かりますね。
+    ![](/images/2025-05-24-14-40-08.png)
+
+
+    1分ほど待つとスコアが表示されます。何点になったでしょうか？  
+    これが今後の改善のベースラインとなるので記録しておきましょう！  
