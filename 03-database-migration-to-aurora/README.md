@@ -19,8 +19,8 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 </details>
 
 # 構築手順
-1. Auroraクラスター、インスタンス、DBサブネットグループ、セキュリティグループなどを定義するTerraformファイル（例: aurora.tf）を作成します。
-2. 以下がRDSクラスタ、RDSインスタンス、ネットワーク(サブネット、セキュリティグループ)を定義するterraformファイルです。コードをコピーして`aurora.tf`ファイルに追加してください。
+1. Auroraクラスター、インスタンスを定義するTerraformファイル `aurora.tf` を作成します。
+2. 以下がRDSクラスタ、RDSインスタンスを定義するterraformファイルです。コードをコピーして`aurora.tf`ファイルに追加してください。
     <details>
     <summary>RDSクラスタ</summary>
 
@@ -39,7 +39,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
         engine_lifecycle_support              = "open-source-rds-extended-support-disabled"
         engine_mode                           = "provisioned"
         engine_version                        = "8.0.mysql_aurora.3.05.2"
-        master_password                       = var.db_password # sensitive
+        master_password                       = "password" # NOTE: 本来はパスワードを別で管理する
         master_username                       = "isuconp"
         monitoring_interval                   = 60
         monitoring_role_arn                   = aws_iam_role.private_isu_rds_monitoring_role.arn
@@ -79,10 +79,14 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     ```
     </details>
 
+    その他、ネットワーク、セキュリティグループ、IAMロールの設定を行います。これらは`vpc.tf`、`sg.tf`、`iam.tf`にそれぞれ追加してください。
+
     <details>
     <summary>ネットワーク</summary>
 
     ```
+    # vpc.tf に追記
+
     resource "aws_db_subnet_group" "private_isu_aurora" {
         name       = "private-isu-mysql-subnet-group"
         subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id]
@@ -105,6 +109,14 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
         availability_zone = "ap-northeast-1c"
         cidr_block        = "10.10.11.0/24"
     }
+    ```
+    </details>
+
+    <details>
+    <summary>セキュリティグループ</summary>
+
+    ```
+    # sg.tf に追記
 
     resource "aws_security_group" "private_isu_aurora" {
         name   = "Private-isu-aurora"
@@ -116,6 +128,14 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
             security_groups = [aws_security_group.private_isu_web.id]
         }
     }
+    ```
+    </details>
+
+    <details>
+    <summary>IAMロール</summary>
+
+    ```
+    # iam.tf に追記
 
     data "aws_iam_policy" "enhanced_monitoring" {
         arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
@@ -144,7 +164,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
                 Action = "sts:AssumeRole"
                 Effect = "Allow"
                 Principal = {
-                Service = "ec2.amazonaws.com" # Aurora クラスターのホストインスタンスが EC2 コンポーネントを持つため
+                Service = "ec2.amazonaws.com"
                 }
             },
             ]
@@ -161,6 +181,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     }
     ```
     </details>
+
 3. 実行環境で実行計画を確認します。 
     ```
     terraform plan
@@ -170,29 +191,45 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     terraform aplly
     ```
 
+    ---
+
+    DBの作成には時間がかかります(10分ほどかかることも)。この間に、以下のことを行っていきましょう！
+
+    - アプリケーションを実際に触ってみる
+    - DBをAuroraに切り出すことでパフォーマンスが上がるか、下がるか予想を立てる
+
+    ---
+
 4. DBの移行  
-    Private-isuインスタンスに入ってsqlディレクトリを作成してください
+    Private-isuインスタンスに入ってsqlディレクトリを作成してください。
     ```
     cd ~/private_isu
     mkdir /home/isucon/private_isu/webapp/sql
     ```
-    その下記コマンドでダンプファイルを作成してください
+
+    次に下記のコマンドを実行するとDB移行に必要なダンプファイルが作成されます。
     ```
     make init
     ```
-    ダンプファイルを作成したらDBを移行します。  
-    パスワードは先ほど設定したものを入力してください。
+    
+    ダンプファイルを作成したらDBを移行します(こちらも少し時間がかかります)。  
+
     ```
-    bunzip2 -c webapp/sql/dump.sql.bz2 | mysql -h {ホスト指定} -uisuconp -p
+    bunzip2 -c webapp/sql/dump.sql.bz2 | mysql -h {Auroraのエンドポイント} -uisuconp -ppassword
     ```
 
-    アプリケーションの向き先を変更します。`~/private-isu/env.sh`ファイルを開き以下の様に編集します。
+    ※上記コマンドではホスト部分にAuroraのエンドポイントが必要ですが、AWSコンソールからAuroraクラスターのライターのエンドポイントをコピーして使います。
+
+    ![aurora-endpoint](../images/aurora-endpoint.png)
+    
+
+    アプリケーションの向き先を変更します。`~/env.sh`ファイルを開き以下の様に編集します。
     ```
     PATH=/usr/local/bin:/home/isucon/.local/ruby/bin:/home/isucon/.local/node/bin:/home/isucon/.local/python3/bin:/home/isucon/.local/perl/bin:/home/isucon/.local/php/bin:/home/isucon/.local/php/sbin:/home/isucon/.local/go/bin:/home/isucon/.local/scala/bin:/usr/bin/:/bin/:$PATH
     ISUCONP_DB_USER=isuconp
-    ISUCONP_DB_PASSWORD=<実際のパスワードに変更>
+    ISUCONP_DB_PASSWORD=password # 変更
     ISUCONP_DB_NAME=isuconp
-    ISUCONP_DB_HOST=<Auroraのエンドポイント>
+    ISUCONP_DB_HOST=<Auroraのエンドポイント> # 変更
     ```
 
     Private-isuアプリを再起動してください。
@@ -204,6 +241,9 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 スコアが上がるか、下がるか予想を立てて現在の構成でベンチマークを実行してみてください。
 スコアが変動した原因も考察してみてください。
 
+`top`コマンドを実行すると、初回実行で首位だったMySQLがいなくなっているはずです。
+![](/images/2025-05-24-15-56-37.png)
+
 6. スロークエリの検出
 AWSコンソール上でRDSを検索し、`Performance insights`から先ほど建てたインスタンスを指定します。  
 ディメンションのトップSQLからボトルネックのクエリを特定しましょう。
@@ -211,16 +251,28 @@ AWSコンソール上でRDSを検索し、`Performance insights`から先ほど�
     <details>
 
     <summary>インデックス追加</summary>
+
     Performance insightsより以下のクエリがボトルネックとわかりました。  
 
 
     ```SQL
     SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC LIMIT ?;
     ```
-    こちらのクエリはpost_idが一致する行を全て探索し、その後created_atでソートしています。なのでpost_idに対してインデックスを作成すると高速化します。
+
+    こちらのクエリは `post_id` が一致する行を全て探索し、その後 `created_at` でソートしています。そこで、 `post_id` に対してインデックスを作成してみましょう。
 
     ```
+    # mysqlに接続
+    mysql -h <Auroraのエンドポイント> -uisuconp -ppassword
+    ```
+
+    ```SQL
+    # インデックスを追加
+    use isuconp;
     create index post_id_created_at_idx on comments (post_id, created_at DESC);
     ```
+
+    では、再度ベンチマークを実行してみましょう。ベンチマーク終了後、スコアを記録してください。  
+    また、`Performance insights`を再度開いて、先ほどのクエリが改善されているか確認してみてください。
 
     </details>
