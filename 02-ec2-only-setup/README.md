@@ -22,167 +22,164 @@
 
 2. 以下は、基本的なネットワーク（VPC、サブネット、インターネットゲートウェイ、ルートテーブル）、セキュリティグループ、EC2インスタンス（アプリケーションサーバー、ベンチマーカー）を定義するTerraformコードです。
 
-<details>
-<summary>ネットワークとEC2</summary>
+  <details>
+  <summary>ネットワーク</summary>
 
-```
-# vpc.tf
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16" # 例: CloudFormationテンプレートの 192.168.0.0/16 とは異なる例を使用
-  tags = {
-    Name = "private-isu-vpc"
-  }
-}
-
-resource "aws_subnet" "public_a" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.1.0/24" # 例: CloudFormationテンプレートの 192.168.1.0/24 とは異なる例を使用
-  availability_zone = "ap-northeast-1a"
-  map_public_ip_on_launch = true # パブリックサブネット
-  tags = {
-    Name = "private-isu-public-subnet-a"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = aws_vpc.main.id
+  ```
+  # vpc.tf
+  resource "aws_vpc" "main" {
+    cidr_block = "10.0.0.0/16" 
     tags = {
-        Name = "private-isu-igw"
+      Name = "private-isu-vpc"
     }
-}
+  }
 
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-  route {
-    cidr_block = "0.0.0.0/0"
-         gateway_id = aws_internet_gateway.gw.id
+  resource "aws_subnet" "public_1a" {
+    vpc_id = aws_vpc.vpc.id
+
+    availability_zone = "ap-northeast-1a"
+    cidr_block        = "10.10.0.0/24"
+  }
+
+  resource "aws_internet_gateway" "gw" {
+    vpc_id = aws_vpc.vpc.id
+  }
+
+  resource "aws_route_table" "public_1a_rtb" {
+    vpc_id = aws_vpc.vpc.id
+
+    route {
+      cidr_block = "0.0.0.0/0"
+      gateway_id = aws_internet_gateway.gw.id
     }
-     tags = {
-        Name = "private-isu-public-rt"
+  }
+
+  resource "aws_route_table_association" "a" {
+    subnet_id      = aws_subnet.public_1a.id
+    route_table_id = aws_route_table.public_1a_rtb.id
+  }
+
+  # security_group.tf
+  ```
+
+  </details>
+
+  <details>
+  <summary>EC2</summary>
+
+  ```
+  #private_isu instance
+  resource "aws_instance" "private_isu_web" {
+    ami                         = "ami-0505850c059a7302e" #Private-isu-AMI
+    instance_type               = "c7a.large"
+    iam_instance_profile        = aws_iam_instance_profile.private_isu_web_profile.name
+    associate_public_ip_address = true
+    vpc_security_group_ids      = [aws_security_group.private_isu_web.id]
+    subnet_id                   = aws_subnet.public_1a.id
+    user_data                   = <<-EOF
+          snap install amazon-ssm-agent --classic
+          snap start amazon-ssm-agent
+
+      EOF
+    tags = {
+      Name = "Private-isu"
     }
-}
-
-resource "aws_route_table_association" "public_a" {
-  subnet_id      = aws_subnet.public_a.id
-  route_table_id = aws_route_table.public.id
-}
-
-# security_group.tf
-resource "aws_security_group" "web" {
-  name        = "private-isu-web-sg"
-  description = "Allow SSH, HTTP, HTTPS and Intra-VPC traffic"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # <TODO: 本来は自分のIPアドレスなどに制限します>
   }
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+
+  #benchmark instance
+  resource "aws_instance" "benchmark" {
+    ami                         = "ami-0505850c059a7302e" #Private-isu-AMI
+    instance_type               = "c7a.xlarge"
+    iam_instance_profile        = aws_iam_instance_profile.private_isu_web_profile.name
+    associate_public_ip_address = true
+    vpc_security_group_ids      = [aws_security_group.benchmark.id]
+    subnet_id                   = aws_subnet.public_1a.id
+    user_data                   = <<-EOF
+          snap install amazon-ssm-agent --classic
+          snap start amazon-ssm-agent
+
+      EOF
+    tags = {
+      Name = "Private-isu-benchmark"
+    }
   }
-  ingress {
-    from_port   = 443 // CloudFormationにはあるが、Private-isuのデフォルトでは未使用かも
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  ```
+  </details>
+
+  <details>
+  <summary>セキュリティグループ</summary>
+
+  ```
+  resource "aws_security_group" "private_isu_web" {
+    name   = "Private-isu"
+    vpc_id = aws_vpc.vpc.id
+    ingress {
+      from_port       = 80
+      to_port         = 80
+      protocol        = "tcp"
+      security_groups = [aws_security_group.alb.id]
+    }
+
+    egress {
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
   }
-  ingress { // VPC内からの全トラフィック許可
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = [aws_vpc.main.cidr_block] // <TODO: VPCのCIDRブロックを参照するようにしてください>
+
+  resource "aws_security_group" "benchmark" {
+    name   = "Private-isu-benchmark"
+    vpc_id = aws_vpc.vpc.id
+
+    egress {
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
   }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  ```
+
+  </details>
+
+  <details>
+  <summary>ssm用iam</summary>
+
+  ```
+  resource "aws_iam_role" "private_isu_web" {
+    name               = "private_isu_web"
+    assume_role_policy = data.aws_iam_policy_document.private_isu_web_assume_role.json
   }
-  tags = {
-    Name = "private-isu-web-sg"
+  data "aws_iam_policy_document" "private_isu_web_assume_role" {
+    statement {
+      actions = ["sts:AssumeRole"]
+
+      principals {
+        type        = "Service"
+        identifiers = ["ec2.amazonaws.com"]
+      }
+    }
   }
-}
 
-# ec2.tf
-variable "key_pair_name" {
-  description = "EC2 Key Pair name"
-  type        = string
-  default     = "<TODO: 自分のキーペア名を入力>"
-}
-
-variable "github_username" {
-  description = "GitHub Username for SSH public key"
-  type        = string
-  default     = "<TODO: 自分のGitHubユーザー名を入力>"
-}
-
-resource "aws_instance" "app_server" {
-  ami           = "<TODO: Private-isuアプリケーションサーバー用のAMI ID (例: ami-0d92a4724cae6f07b)>"
-  instance_type = "t3.large" # CloudFormationでは c6i.large、コストを抑えるためt3.largeに変更
-  key_name      = var.key_pair_name
-  subnet_id     = aws_subnet.public_a.id
-  vpc_security_group_ids = [aws_security_group.web.id]
-  # private_ip    = "10.0.1.10" # CloudFormation のように固定も可能だが、動的に払い出されるように変更
-
-  user_data = <<-EOF
-    #!/bin/bash
-    GITHUB_USER=${var.github_username}
-    # UserDataの内容はCloudFormationテンプレートを参考にしてください
-    # (isuconユーザーの作成、sshd設定、GitHub公開鍵の登録など)
-    sudo yum update -y
-    # <TODO: アプリケーションのセットアップスクリプトなどを記述>
-  EOF
-
-  tags = {
-    Name = "private-isu-app-server"
+  data "aws_iam_policy" "ssm_managed_instance_core" {
+    arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
-}
-
-resource "aws_eip" "app_server_eip" {
-  instance = aws_instance.app_server.id
-  vpc      = true
-  tags = {
-    Name = "private-isu-app-server-eip"
+  resource "aws_iam_role_policy_attachment" "private_isu_web_ssm_managed_instance_core" {
+    role       = aws_iam_role.private_isu_web.name
+    policy_arn = data.aws_iam_policy.ssm_managed_instance_core.arn
   }
-}
 
-resource "aws_instance" "benchmarker" {
-  ami           = "<TODO: Private-isuベンチマーカー用のAMI ID (例: ami-0582a2a7fbe79a30d)>"
-  instance_type = "t3.xlarge" # CloudFormationでは c6i.xlarge、コストを抑えるためt3.xlargeに変更
-  key_name      = var.key_pair_name
-  subnet_id     = aws_subnet.public_a.id
-  vpc_security_group_ids = [aws_security_group.web.id]
-  # private_ip    = "10.0.1.20" # CloudFormation のように固定も可能だが、動的に払い出されるように変更
-
-  user_data = <<-EOF
-    #!/bin/bash
-    GITHUB_USER=${var.github_username}
-    # UserDataの内容はCloudFormationテンプレートを参考にしてください
-    # (isuconユーザーの作成、sshd設定、GitHub公開鍵の登録など)
-    sudo yum update -y
-    # <TODO: ベンチマーカーのセットアップスクリプトなどを記述>
-  EOF
-
-  tags = {
-    Name = "private-isu-benchmarker"
+  # privte-isuインスタンスプロファイルを作成
+  resource "aws_iam_instance_profile" "private_isu_web_profile" {
+    name = "private-isu-web-instance-profile"
+    role = aws_iam_role.private_isu_web.name
   }
-}
+  ```
 
-resource "aws_eip" "benchmarker_eip" {
-  instance = aws_instance.benchmarker.id
-  vpc      = true
-  tags = {
-    Name = "private-isu-benchmarker-eip"
-  }
-}
-```
-
-</details>
+  </details>
 
 3. 実行環境で terraform init を実行して初期化します。
     ```

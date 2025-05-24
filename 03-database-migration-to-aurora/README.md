@@ -8,13 +8,14 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
 <details>
 <summary>RDSのメリット</summary>
-運用負荷削減: 面倒な管理作業を自動化し、本業に専念できます。
-
-容易な構築・拡張: すぐにDBを開始でき、リソース変更も簡単です。  
-高可用性: 障害時も自動復旧し、サービス停止を最小化します。   
-エンジン選択自由: 人気DBやAuroraなど、最適なエンジンを選べます。  
-コスト最適化: 使った分だけ支払い、初期費用は不要です。  
-堅牢なセキュリティ: 多層的な保護でデータを安全に守ります。  
+<ul>
+<li><strong>運用負荷削減:</strong>面倒な管理作業を自動化し、本業に専念できます。</li>
+<li><strong>容易な構築・拡張:</strong>すぐにDBを開始でき、リソース変更も簡単です。</li>
+<li><strong>高可用性:</strong> 障害時も自動復旧し、サービス停止を最小化します。</li>
+<li><strong>エンジン選択自由:</strong> 人気DBやAuroraなど、最適なエンジンを選べます。</li>  
+<li><strong>コスト最適化:</strong> 使った分だけ支払い、初期費用は不要です。</li>
+<li><strong>堅牢なセキュリティ:</strong> 多層的な保護でデータを安全に守ります。</li>
+</ul> 
 </details>
 
 # 構築手順
@@ -89,23 +90,23 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
         tags = {
             Name = "private-isu aurora subnet group"
         }
-        }
+    }
 
-        resource "aws_subnet" "mysql-a" {
+    resource "aws_subnet" "mysql-a" {
         vpc_id = aws_vpc.vpc.id
 
         availability_zone = "ap-northeast-1a"
         cidr_block        = "10.10.9.0/24"
-        }
+    }
 
-        resource "aws_subnet" "mysql-c" {
+    resource "aws_subnet" "mysql-c" {
         vpc_id = aws_vpc.vpc.id
 
         availability_zone = "ap-northeast-1c"
         cidr_block        = "10.10.11.0/24"
-        }
+    }
 
-        resource "aws_security_group" "private_isu_aurora" {
+    resource "aws_security_group" "private_isu_aurora" {
         name   = "Private-isu-aurora"
         vpc_id = aws_vpc.vpc.id
         ingress {
@@ -114,13 +115,13 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
             protocol        = "tcp"
             security_groups = [aws_security_group.private_isu_web.id]
         }
-        }
+    }
 
-        data "aws_iam_policy" "enhanced_monitoring" {
+    data "aws_iam_policy" "enhanced_monitoring" {
         arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
-        }
+    }
 
-        resource "aws_iam_role" "private_isu_rds_monitoring_role" {
+    resource "aws_iam_role" "private_isu_rds_monitoring_role" {
         name = "private-isu-rds-monitoring-role"
         assume_role_policy = jsonencode({
             Version = "2012-10-17"
@@ -152,9 +153,9 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
         tags = {
             Name = "private-isu RDS Monitoring Role"
         }
-        }
+    }
 
-        resource "aws_iam_role_policy_attachment" "enhanced_monitoring_attachment" {
+    resource "aws_iam_role_policy_attachment" "enhanced_monitoring_attachment" {
         role       = aws_iam_role.private_isu_rds_monitoring_role.name
         policy_arn = data.aws_iam_policy.enhanced_monitoring.arn
     }
