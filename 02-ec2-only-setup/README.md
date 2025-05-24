@@ -23,7 +23,7 @@
 2. 以下は、基本的なネットワーク（VPC、サブネット、インターネットゲートウェイ、ルートテーブル）、セキュリティグループ、EC2インスタンス（アプリケーションサーバー、ベンチマーカー）を定義するTerraformコードです。
 
   <details>
-  <summary>terraform main</summary>
+  <summary>main.tf</summary>
 
   ```
   terraform {
@@ -48,11 +48,11 @@
   }
 
   ```
-  
+
   </details>
 
   <details>
-  <summary>ネットワーク</summary>
+  <summary>vpc.tf</summary>
 
   ```
   # vpc.tf
@@ -94,7 +94,7 @@
   </details>
 
   <details>
-  <summary>EC2</summary>
+  <summary>ec2.tf</summary>
 
   ```
   #private_isu instance
@@ -136,7 +136,7 @@
   </details>
 
   <details>
-  <summary>セキュリティグループ</summary>
+  <summary>sg.tf</summary>
 
   ```
   resource "aws_security_group" "private_isu_web" {
@@ -175,7 +175,7 @@
   </details>
 
   <details>
-  <summary>ssm用iam</summary>
+  <summary>iam.tf</summary>
 
   ```
   resource "aws_iam_role" "private_isu_web" {
