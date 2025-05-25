@@ -21,9 +21,9 @@
     以下のリンクからCloudFormationファイルをダウンロードしてください。  
     <a href="https://raw.githubusercontent.com/KiyamaMizuki/Private-isu-scoreup-for-AWS/refs/heads/main/01-initial-environment/setup.yml" download="setup.yml">
   setup.yml をダウンロード
-</a>  
-    このテンプレートには、VPC、サブネット、セキュリティグループ、環境構築済みのEC2インスタンスなどが定義されています。
-1. AWSマネジメントコンソールへのログイン
+    </a>  
+1. このテンプレートには、VPC、サブネット、セキュリティグループ、環境構築済みのEC2インスタンスなどが定義されています。
+2. AWSマネジメントコンソールへのログイン
     AWSマネジメントコンソールにログインし、CloudFormationを利用するリージョン（例: 東京リージョン ap-northeast-1）を選択していることを確認してください。
 2. CloudFormationスタックの作成
     AWSマネジメントコンソールのサービス検索窓で「CloudFormation」と入力し、CloudFormationのダッシュボードを開きます。
