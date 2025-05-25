@@ -7,13 +7,19 @@ Private-isuではuniconというサーバーライブラリが利用されてい
 1. `~/private-isu/webapp/ruby/unicorn_config.rb`がuniconの設定ファイルパスになります。
     設定ファイルの初期状態は以下です。
     ```
-
+    worker_processes 1
+    preload_app true
+    listen "0.0.0.0:8080"
     ```
     上記の`worker_processes`の値を4に変更してください
-2. アプリの再起動
+2. アプリの再起動  
     `unicorn_config.rb`の編集後、アプリを再起動します。
     ```
     sudo systemctl restart isu-ruby
     ```
+3. ベンチマークの実行と考察  
+    ベンチマークを実行し、スコアを比較してください。   
+    コア数を変動させて最適なworkerプロセス数を見つけてみてください。
+
 
 [⬅️ 前のセクションへ](../08-multi-ec2-instances/README.md)
