@@ -1,5 +1,5 @@
 # 概要
-![07](../images/private-isu07.png) 
+![07](../images/private-isu07.png)  
 本セクションでは、Amazon ElastiCacheを導入し、アプリケーションレベルのキャッシュ（セッション情報、頻繁にアクセスされるDBクエリ結果など）を切り離します。これにより、DBへの負荷を軽減し、アプリケーションのレスポンスを高速化します。また、この後の複数台構成において、ステートフルな情報を外部に持つための準備でもあります。
 
 <details>
@@ -104,7 +104,7 @@
     ISUCONP_DB_HOST=<Auroraのエンドポイント>
     ISUCONP_MEMCACHED_ADDRESS=<ElastiCacheのエンドポイント>
     ```
-5. ベンチマークの実行と考察
+5. ベンチマークの実行と考察  
     ElastiCache導入後、再度ベンチマークを実行し、スコアを比較してください。
 
 [⬅️ 前のセクションへ](../06-cloudfront-caching/README.md)　　　[次のセクションへ ➡️](../08-multi-ec2-instances/README.md)

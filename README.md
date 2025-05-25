@@ -21,3 +21,6 @@
 1. [ElastiCacheによるキャッシュ](./07-elasticache-integration/README.md)
 1. [EC2の複数台構成](./08-multi-ec2-instances/README.md)
 1. [おまけ: コア数の増加](./09-multi-process/README.md)
+
+またそれぞれのセクションのディレクトリに`private-isu-terraform`というディレクトリがあります。  
+各セクションを完了した時のterraformファイル構成がありますので詰まった際にはそちらを参考に進めてください。

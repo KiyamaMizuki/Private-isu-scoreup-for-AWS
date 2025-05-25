@@ -36,6 +36,11 @@ resource "aws_lb_target_group_attachment" "private_isu" {
   target_id        = aws_instance.private_isu_web.id
 }
 
+resource "aws_lb_target_group_attachment" "private_isu02" {
+  target_group_arn = aws_lb_target_group.private_isu.arn
+  target_id        = aws_instance.private_isu_web02.id
+}
+
 resource "aws_lb_listener" "private_isu" {
   load_balancer_arn = aws_lb.private_isu_alb.arn
   port              = 80
