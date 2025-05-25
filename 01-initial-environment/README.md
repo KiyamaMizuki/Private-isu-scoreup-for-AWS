@@ -18,23 +18,42 @@
 
 # 構築手順
 1. CloudFormationテンプレートの準備
-    ワークショップ主催者から提供されるCloudFormationテンプレートファイル（setup.yml） をお手元に準備してください。  
+    以下のリンクからCloudFormationファイルをダウンロードしてください。  
     <a href="https://raw.githubusercontent.com/KiyamaMizuki/Private-isu-scoreup-for-AWS/refs/heads/main/01-initial-environment/setup.yml" download="setup.yml">
   setup.yml をダウンロード
 </a>  
-    このテンプレートには、VPC、サブネット、セキュリティグループ、EC2インスタンス（アプリケーションサーバー、ベンチマーカーサーバー）などが定義されています。
-2. AWSマネジメントコンソールへのログイン
+    このテンプレートには、VPC、サブネット、セキュリティグループ、環境構築済みのEC2インスタンスなどが定義されています。
+1. AWSマネジメントコンソールへのログイン
     AWSマネジメントコンソールにログインし、CloudFormationを利用するリージョン（例: 東京リージョン ap-northeast-1）を選択していることを確認してください。
-3. CloudFormationスタックの作成
+2. CloudFormationスタックの作成
     AWSマネジメントコンソールのサービス検索窓で「CloudFormation」と入力し、CloudFormationのダッシュボードを開きます。
     「スタックの作成」をクリックし、「新しいリソースを使用 (標準)」を選択します。
     ![](/images/CFn-make-stack.png)
-4. 「既存のテンプレート」を選択し、「テンプレートファイルのアップロード」を選択し、先ほど用意したsetup.ymlを選択し「次へ」に進みます。
+3. 「既存のテンプレート」を選択し、「テンプレートファイルのアップロード」を選択し、先ほど用意したsetup.ymlを選択し「次へ」に進みます。
     ![](/images/CFn-upload-stack.png)
-5. スタックの詳細を指定ではスタック名をcode-serverに指定して「次へ」で進みます。
+4. スタックの詳細を指定ではスタック名をcode-serverに指定して「次へ」で進みます。
     ![](/images/CFn-name-stack.png)
-6. スタックオプションの設定では何も変更を加えず、「AWS CloudFormation によって IAM リソースが作成される場合があることを承認します。」にチェックを入れて「次へ」に進みます。
-7. 確認して作成
+5. スタックオプションの設定では何も変更を加えず、「AWS CloudFormation によって IAM リソースが作成される場合があることを承認します。」にチェックを入れて「次へ」に進みます。
+6. 確認して作成
     上記で設定した内容が反映されていることを確認し、「送信」を押します。
 
+# 動作確認
+1. CloudFormationのスタックの画面で「CREATE_COMPLETE」になっていることを確認した後,AWSマネジメントコンソールのサービス検索窓で「ec2」と検索します。
+![](/images/CFn-check.png)
+2. 「ダッシュボード」の「インスタンス（実行中）」からNameが「CodeServer」になっているインスタンスをクリック。パブリックIPアドレスをコピーし、ブラウザで開きます
+![](/images/ec2-ip.png)
+3. 以下の様なログイン画面が表示されます。初期パスワードは`password`です。
+    ![](/images/code-server-login.png)
+
+4. ログイン完了後,画面左側のファイルアイコンを押し、「Open Folder」から`/home/ec2-user/private-isu-terraform`を入力しOKボタンを押します。  
+「Do you trust the authors of the files in this folder?」の様なポップアップが現れた場合「Yes,I trust」をクリックしてください
+    ![](/images/code-server-setup.png)
+    このディレクトリ配下にTerraform設定ファイルを構築していきます。
+5. 右側のハンバーガーメニューから「Terminal」→「New　Terminal」を選択しターミナルを開いでください。
+    ![](/images/code-server-terminal.png)
+    以下のコマンドを実行して問題なく、terraformのバージョンが返ってくることを確認したら完了です。
+    ```sh
+    terraform -v
+    ```
+ 
  [➡️ EC2のみでPrivate-isuの構築](../02-ec2-only-setup/README.md)
