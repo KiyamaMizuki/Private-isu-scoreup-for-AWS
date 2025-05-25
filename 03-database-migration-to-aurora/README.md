@@ -1,5 +1,5 @@
 # 概要
-![03](../images/Private-isu03.png)  
+![03](../images/private-isu03.png)  
 本セクションではPrivate-isuインスタンス内で稼働していたMySQLをAWSのマネージド型リレーショナルデータベースサービスであるAmazon RDSに切り出していきます。  
 RDSではクラスターと呼ばれる構成で、読み書き可能なプライマリDBインスタンスと、読み取りのみのレプリカDBインスタンス、クラスタボリュームを管理しています。  
 また、アプリケーションからアクセスする為のネットワーク経路もRDS用に必要となっています。  
@@ -26,7 +26,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
     ```
     resource "aws_rds_cluster" "private_isu_db" {
-        availability_zones                    = ["ap-northeast-1a", "ap-northeast-1c"]
+        availability_zones                    = ["ap-northeast-1a", "ap-northeast-1c", "ap-northeast-1d"]
         cluster_identifier                    = "private-isu-db"
         database_insights_mode                = "advanced"
         database_name                         = "isuconp"
@@ -108,6 +108,13 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
         availability_zone = "ap-northeast-1c"
         cidr_block        = "10.10.11.0/24"
+    }
+
+    resource "aws_subnet" "mysql-d" {
+        vpc_id = aws_vpc.vpc.id
+
+        availability_zone = "ap-northeast-1d"
+        cidr_block        = "10.10.12.0/24"
     }
     ```
     </details>
@@ -234,6 +241,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
     Private-isuアプリを再起動してください。
     ```
+    sudo systemctl daemon-reload
     sudo systemctl restart isu-ruby
     ```
 
@@ -276,3 +284,5 @@ AWSコンソール上でRDSを検索し、`Performance insights`から先ほど�
     また、`Performance insights`を再度開いて、先ほどのクエリが改善されているか確認してみてください。
 
     </details>
+
+[⬅️ 前のセクションへ](../02-ec2-only-setup/README.md)　　　[次のセクションへ ➡️](../04-adding-alb/README.md)

@@ -1,5 +1,5 @@
 # 概要
-![06](../images/Private-isu06.png) 
+![06](../images/private-isu06.png) 
 本セクションでは、Amazon CloudFront を導入し、静的ファイル（CSS, JavaScript, 一部の画像など）をエッジロケーションにキャッシュすることで、オリジンサーバー（ALB経由のEC2）への負荷を軽減し、ユーザーへのレスポンス速度を向上させます。
 
 <details>
@@ -14,7 +14,7 @@
 </details>
 
 # 構築手順
-1. CloudFrontディストリビューションを定義するTerraformファイル（例: cloudfront.tf）を作成します。
+1. CloudFrontディストリビューションを定義するTerraformファイル（ cloudfront.tf）を作成します。
 
 2. 以下は、CloudFrontディストリビューションを定義するTerraformコードです。オリジンは前のステップで作成したALBを指定します。
 
@@ -131,6 +131,31 @@
     }
 
     ```
+    </details>
+
+    <details>
+    <summary>sg.tf</summary>
+
+    ```
+    #追加
+    resource "aws_vpc_security_group_ingress_rule" "alb" {
+        depends_on = [data.aws_security_group.vpc_origin_sg]
+        security_group_id = aws_security_group.alb.id
+        from_port         = 80
+        to_port           = 80
+        ip_protocol       = "tcp"
+        referenced_security_group_id = data.aws_security_group.vpc_origin_sg.id
+    }
+
+    data "aws_security_group" "vpc_origin_sg" {
+        depends_on = [aws_cloudfront_vpc_origin.alb]
+        filter {
+            name   = "group-name"
+            values = ["CloudFront-VPCOrigins-Service-SG"]
+        }
+    }
+    ```
+    </details>
 
 3. 実行計画を確認し、適用します。
     ```
@@ -140,6 +165,13 @@
     
 4. 動作確認
     CloudFrontディストリビューションのドメイン名（例: xxxxxx.cloudfront.net）にアクセスし、アプリケーションが表示されることを確認します。
+    ![](/images/2025-05-25-21-18-30.png)
 
 5. ベンチマークの実行と考察
     CloudFront経由でベンチマークを実行し、スコアを比較してください。特に静的コンテンツの多いページでのレスポンス速度向上や、オリジンサーバーの負荷軽減効果を考察しましょう。
+
+    ```sh
+    /home/isucon/private_isu/benchmarker/bin/benchmarker -u /home/isucon/private_isu/benchmarker/userdata -t http://{CloudFrontのドメイン名}
+    ```
+
+[⬅️ 前のセクションへ](../05-athena-log-analysis/README.md)　　　[次のセクションへ ➡️](../07-elasticache-integration/README.md)

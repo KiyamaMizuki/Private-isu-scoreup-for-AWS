@@ -1,5 +1,5 @@
 # 概要
-![05](../images/Private-isu05.png) 
+![05](../images/private-isu05.png) 
 本セクションでは、Amazon Athena を使用して、S3バケットに保存されたALB (Application Load Balancer) のアクセスログを分析します。Athenaはサーバーレスのインタラクティブクエリサービスであり、標準SQLを使用してS3上のデータを直接、簡単に分析できます。
 
 この分析を通じて、Private-isuアプリケーションのどのパスが多くアクセスされているか、レスポンスタイムが遅いリクエストは何か、エラーが発生している箇所はどこか、といった情報を把握し、パフォーマンス改善のヒントを得ることを目的とします。
@@ -17,10 +17,27 @@
 
 
 ## 前提条件:
-前のセクション「④ALB追加」が完了しており、ALBのアクセスログがS3バケットに出力されていること。  
+前のセクション「④ALB追加」が完了しており、ベンチマークを実行してALBのアクセスログがS3バケットに出力されていること。  
 
 # 分析手順
-1. 「クエリ結果の場所と暗号化」セクションで、「クエリ結果の場所」に、Athenaのクエリ結果を保存するためのS3バケットのパスを指定します（例: s3://your-athena-query-results-bucket/）。
+1. クエリを実行する為のワークグループと、実行したクエリを保存するバケットを定義するTerraformファイル`athena.tf`を作成し、編集していきます。
+   <details>
+    <summary>athena</summary>
+
+    ```
+    resource "aws_athena_workgroup" "example" {
+      name = "private-isu-workgroup"
+
+      configuration {
+        enforce_workgroup_configuration    = true
+        result_configuration {
+          output_location = "s3://${aws_s3_bucket.lb_logs.bucket}/athena/"
+        }
+      }
+    }
+    ```
+    <details>
+
 2.  データベースの作成
     Athenaのクエリエディタで以下を実行します。
     ```
@@ -92,7 +109,7 @@
     target_processing_time,
     request_creation_time
     FROM alb_access_logs
-    WHERE request_creation_time >= '2025-03-16T10:20:00.000000Z' //ベンチマーカーの実行時間に設定
+    WHERE request_creation_time >= '2025-03-16T10:20:00.000000Z' --ベンチマーカーの実行時間に設定
     ),
     grouped_logs AS (
       SELECT 
@@ -121,3 +138,6 @@
 5. 結果の確認
    クエリ結果から、アプリケーションのどの部分に負荷が集中しているか、レスポンスが遅いか、エラーが多いかを特定します。  
    次のセクションで負荷が集中している部分の改善をしていきます。
+  ![](/images/2025-05-25-20-42-46.png)
+  
+[⬅️ 前のセクションへ](../04-adding-alb/README.md)　　　[次のセクションへ ➡️](../06-cloudfront-caching/README.md)
