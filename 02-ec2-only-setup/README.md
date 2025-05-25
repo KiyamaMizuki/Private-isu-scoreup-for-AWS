@@ -265,3 +265,5 @@
 
     1分ほど待つとスコアが表示されます。何点になったでしょうか？  
     これが今後の改善のベースラインとなるので記録しておきましょう！  
+
+ [⬅️ 前のセクションへ](../01-initial-environment/README.md)　　　[次のセクションへ ➡️](../03-database-migration-to-aurora/README.md)

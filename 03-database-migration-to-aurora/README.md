@@ -276,3 +276,5 @@ AWSコンソール上でRDSを検索し、`Performance insights`から先ほど�
     また、`Performance insights`を再度開いて、先ほどのクエリが改善されているか確認してみてください。
 
     </details>
+
+[⬅️ 前のセクションへ](../02-ec2-only-setup/README.md)　　　[次のセクションへ ➡️](../04-adding-alb/README.md)

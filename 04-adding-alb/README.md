@@ -201,3 +201,5 @@ ALBを導入する主な目的は以下の2点です。
 
     ※ALBのDNS名はAWSマネジメントコンソールのEC2ダッシュボードから確認できます。
     ![ALB DNS](../images/alb-dns.png)
+
+[⬅️ 前のセクションへ](../03-database-migration-to-aurora/README.md)　　　[次のセクションへ ➡️](../05-athena-log-analysis/README.md)

@@ -72,3 +72,5 @@
     ```
 5. ベンチマークの実行と考察
     ElastiCache導入後、再度ベンチマークを実行し、スコアを比較してください。
+
+[⬅️ 前のセクションへ](../06-cloudfront-caching/README.md)　　　[次のセクションへ ➡️](../08-multi-ec2-instances/README.md)
