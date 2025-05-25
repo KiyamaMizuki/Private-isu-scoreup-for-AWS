@@ -241,6 +241,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
     Private-isuアプリを再起動してください。
     ```
+    sudo systemctl daemon-reload
     sudo systemctl restart isu-ruby
     ```
 
