@@ -55,10 +55,27 @@
     terraform apply
     ```
 
-3. 動作確認
+3. `Private-isu02`インスタンスの環境変数を更新します。  
+これは`Private-isu`インスタンスと全く同じ内容にします。
+  ```
+  PATH=/usr/local/bin:/home/isucon/.local/ruby/bin:/home/isucon/.local/node/bin:/home/isucon/.local/python3/bin:/home/isucon/.local/perl/bin:/home/isucon/.local/php/bin:/home/isucon/.local/php/sbin:/home/isucon/.local/go/bin:/home/isucon/.local/scala/bin:/usr/bin/:/bin/:$PATH
+  ISUCONP_DB_USER=isuconp
+  ISUCONP_DB_PASSWORD=password
+  ISUCONP_DB_NAME=isuconp
+  ISUCONP_DB_HOST=<Auroraのエンドポイント>
+  ISUCONP_MEMCACHED_ADDRESS=<ElastiCacheのエンドポイント>
+  ```
+
+  設定後、以下のコマンドを実行して反映させます。
+  ```
+  sudo systemctl daemon-reload
+  sudo systemctl restart isu-ruby
+  ```
+
+4. 動作確認  
     ALBのターゲットグループで、新しいインスタンスが登録され、ヘルスチェックが正常になっていることを確認します。
     CloudFront経由でアプリケーションにアクセスできることを確認します。
-4. ベンチマークの実行と考察
+5. ベンチマークの実行と考察  
     複数台構成でベンチマークを実行し、スコアを比較してください。  
     単一インスタンス構成と比較して、スケーラビリティや高負荷時の安定性がどのように向上したか確認しましょう。
 
