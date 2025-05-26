@@ -26,7 +26,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
     ```
     resource "aws_rds_cluster" "private_isu_db" {
-        availability_zones                    = ["ap-northeast-1a", "ap-northeast-1c", "ap-northeast-1d"]
+        availability_zones                    = ["us-east-1a", "us-east-1c", "us-east-1d"]
         cluster_identifier                    = "private-isu-db"
         database_insights_mode                = "advanced"
         database_name                         = "isuconp"
@@ -89,7 +89,7 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
 
     resource "aws_db_subnet_group" "private_isu_aurora" {
         name       = "private-isu-mysql-subnet-group"
-        subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id]
+        subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id, aws_subnet.mysql-d.id]
 
         tags = {
             Name = "private-isu aurora subnet group"
@@ -99,21 +99,21 @@ RDSではクラスターと呼ばれる構成で、読み書き可能なプラ�
     resource "aws_subnet" "mysql-a" {
         vpc_id = aws_vpc.vpc.id
 
-        availability_zone = "ap-northeast-1a"
+        availability_zone = "us-east-1a"
         cidr_block        = "10.10.9.0/24"
     }
 
     resource "aws_subnet" "mysql-c" {
         vpc_id = aws_vpc.vpc.id
 
-        availability_zone = "ap-northeast-1c"
+        availability_zone = "us-east-1c"
         cidr_block        = "10.10.11.0/24"
     }
 
     resource "aws_subnet" "mysql-d" {
         vpc_id = aws_vpc.vpc.id
 
-        availability_zone = "ap-northeast-1d"
+        availability_zone = "us-east-1d"
         cidr_block        = "10.10.12.0/24"
     }
     ```
