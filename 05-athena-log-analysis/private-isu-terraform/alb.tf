@@ -47,22 +47,6 @@ resource "aws_lb_listener" "private_isu" {
   }
 }
 
-resource "aws_lb_listener_rule" "private_isu" {
-  listener_arn = aws_lb_listener.private_isu.arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.private_isu.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["*"]
-    }
-  }
-}
-
 resource "aws_s3_bucket" "lb_logs" {
   bucket = "private-isu-alb-logs-${data.aws_caller_identity.current.account_id}"
 }

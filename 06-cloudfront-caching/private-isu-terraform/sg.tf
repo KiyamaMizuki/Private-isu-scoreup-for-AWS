@@ -57,28 +57,14 @@ resource "aws_security_group" "alb" {
   }
 }
 
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
 resource "aws_vpc_security_group_ingress_rule" "alb" {
   security_group_id = aws_security_group.alb.id
   from_port         = 80
   to_port           = 80
   ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
-}
-
-# CloudFront用リソース追加
-resource "aws_vpc_security_group_ingress_rule" "alb" {
-  depends_on = [data.aws_security_group.vpc_origin_sg]
-  security_group_id = aws_security_group.alb.id
-  from_port         = 80
-  to_port           = 80
-  ip_protocol       = "tcp"
-  referenced_security_group_id = data.aws_security_group.vpc_origin_sg.id
-}
-
-data "aws_security_group" "vpc_origin_sg" {
-  depends_on = [aws_cloudfront_vpc_origin.alb]
-  filter {
-    name   = "group-name"
-    values = ["CloudFront-VPCOrigins-Service-SG"]
-  }
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront.id
 }
