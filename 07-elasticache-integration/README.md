@@ -23,33 +23,33 @@
 
     ```
     resource "aws_elasticache_cluster" "isucon_memcached" {
-    cluster_id           = "isucon-memcached"             
-    engine               = "memcached"              
-    engine_version       = "1.6.22"                 
-    node_type            = "cache.t3.micro"         
-    num_cache_nodes      = 1                       
-    port                 = 11211                    
-    parameter_group_name = "default.memcached1.6"   
-    subnet_group_name    = aws_elasticache_subnet_group.memcached_subnet_group.name 
-    security_group_ids   = [aws_security_group.isucon_memcached_sg.id]
-    apply_immediately = true
-    tags = {
+      cluster_id           = "isucon-memcached"
+      engine               = "memcached"
+      engine_version       = "1.6.22"
+      node_type            = "cache.t3.micro"
+      num_cache_nodes      = 1
+      port                 = 11211
+      parameter_group_name = "default.memcached1.6"
+      subnet_group_name    = aws_elasticache_subnet_group.memcached_subnet_group.name
+      security_group_ids   = [aws_security_group.isucon_memcached_sg.id]
+      apply_immediately    = true
+      tags = {
         Name = "isucon-mem"
-    }
+      }
 
-    depends_on = [
+      depends_on = [
         aws_elasticache_subnet_group.memcached_subnet_group,
-    ]
+      ]
     }
 
     # --- ElastiCache サブネットグループの作成 ---
     resource "aws_elasticache_subnet_group" "memcached_subnet_group" {
-    name       = "isucon-mem-subnet-group"
-    subnet_ids =  [aws_subnet.cache_subnet.id]
+      name       = "isucon-mem-subnet-group"
+      subnet_ids = [aws_subnet.cache_subnet.id]
 
-    tags = {
+      tags = {
         Name = "isucon-mem-subnet-group"
-    }
+      }
     }
     ```
 
@@ -92,18 +92,25 @@
     terraform plan
     terraform apply
     ```
-    Elasticaheの作成には時間がかかります。
+    ※ElastiCacheの作成には時間がかかります。
 
 4. アプリケーションの変更
-    Private-isuインスタンスに入ってキャッシュの向き先を変更します。 `~/private-isu/env.sh`ファイルを開き以下の様に編集します。
+    Private-isuインスタンスに入ってキャッシュの向き先を変更します。 `~/env.sh`ファイルを開き以下の様に編集します。
      ```
     PATH=/usr/local/bin:/home/isucon/.local/ruby/bin:/home/isucon/.local/node/bin:/home/isucon/.local/python3/bin:/home/isucon/.local/perl/bin:/home/isucon/.local/php/bin:/home/isucon/.local/php/sbin:/home/isucon/.local/go/bin:/home/isucon/.local/scala/bin:/usr/bin/:/bin/:$PATH
     ISUCONP_DB_USER=isuconp
     ISUCONP_DB_PASSWORD=password
     ISUCONP_DB_NAME=isuconp
     ISUCONP_DB_HOST=<Auroraのエンドポイント>
-    ISUCONP_MEMCACHED_ADDRESS=<ElastiCacheのエンドポイント>
+    ISUCONP_MEMCACHED_ADDRESS=<ElastiCacheのエンドポイント> # 追加
     ```
+    
+    Private-isuアプリを再起動してください。
+    ```
+    sudo systemctl daemon-reload
+    sudo systemctl restart isu-ruby
+    ```
+
 5. ベンチマークの実行と考察  
     ElastiCache導入後、再度ベンチマークを実行し、スコアを比較してください。
 
