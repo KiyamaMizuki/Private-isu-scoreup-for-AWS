@@ -1,24 +1,18 @@
-resource "aws_cloudfront_vpc_origin" "alb" {
-  vpc_origin_endpoint_config {
-    name                   = "alb-origin"
-    arn                    = aws_lb.private_isu_alb.arn
-    http_port              = 80
-    https_port             = 443
-    origin_protocol_policy = "http-only"
-
-    origin_ssl_protocols {
-      items    = ["TLSv1.2"]
-      quantity = 1
-    }
-  }
-}
-
 resource "aws_cloudfront_distribution" "alb" {
   origin {
     domain_name = aws_lb.private_isu_alb.dns_name
     origin_id   = "alb-origin"
-    vpc_origin_config {
-      vpc_origin_id = aws_cloudfront_vpc_origin.alb.id
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+
+    custom_header {
+      name  = "X-Custom-Header"
+      value = local.custom_header_value
     }
   }
 
