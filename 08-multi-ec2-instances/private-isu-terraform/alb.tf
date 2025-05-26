@@ -47,8 +47,12 @@ resource "aws_lb_listener" "private_isu" {
   protocol          = "HTTP"
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.private_isu.arn
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      status_code  = "503"
+    }
   }
 }
 
@@ -62,8 +66,9 @@ resource "aws_lb_listener_rule" "private_isu" {
   }
 
   condition {
-    path_pattern {
-      values = ["*"]
+    http_header {
+      http_header_name = "X-Custom-Header"
+      values           = [local.custom_header_value]
     }
   }
 }
