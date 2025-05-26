@@ -81,7 +81,7 @@
     resource "aws_subnet" "cache_subnet" {
         vpc_id = aws_vpc.vpc.id
 
-        availability_zone = "ap-northeast-1c"
+        availability_zone = "us-east-1c"
         cidr_block        = "10.10.5.0/24"
     }
     ```

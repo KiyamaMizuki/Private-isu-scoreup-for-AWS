@@ -8,14 +8,14 @@ resource "aws_vpc" "vpc" {
 resource "aws_subnet" "public_1a" {
   vpc_id = aws_vpc.vpc.id
 
-  availability_zone = "ap-northeast-1a"
+  availability_zone = "us-east-1a"
   cidr_block        = "10.10.0.0/24"
 }
 
 resource "aws_subnet" "public_1c" {
   vpc_id = aws_vpc.vpc.id
 
-  availability_zone = "ap-northeast-1c"
+  availability_zone = "us-east-1c"
   cidr_block        = "10.10.3.0/24"
 }
 
