@@ -36,15 +36,29 @@
       }
     }
     ```
-    <details>
+    </details>
+  
+  作成が完了したら、Athenaのクエリエディタ画面からワークグループを`private-isu-workgroup`に切り替えます。
 
-2.  データベースの作成
+  ![](/images/2025-05-27-03-52-54.png)
+
+2.  データベースの作成  
     Athenaのクエリエディタで以下を実行します。
     ```
     CREATE DATABASE IF NOT EXISTS private_isu_alb_db;
     ```
 3. ALBアクセスログ用テーブルの作成
-    クエリエディタで、データベース private_isu_alb_db を選択し、以下の CREATE EXTERNAL TABLE 文を実行します。
+    クエリエディタで、データベース private_isu_alb_db を選択し、以下の CREATE EXTERNAL TABLE 文を実行します。  
+    なお、クエリ末尾にある
+    ```
+    s3://<ログフォルダの場所>/
+    ```
+    は、ALBのアクセスログが保存されているS3バケットのパス
+    ```
+    s3://private-isu-alb-logs-<アカウントID>/private-isu/AWSLogs/<アカウントID>/elasticloadbalancing/us-east-1/
+    ```
+    に置き換えます。
+
     <details>
     <summary>テーブル作成クエリ</summary>
 
@@ -97,7 +111,13 @@
 
     </details>
 
-4. ログをグループ化して出力
+4. ログをグループ化して出力  
+    以下のクエリを実行して、ALBのアクセスログをURL・HTTPメソッドごとにグループ化し、それぞれのリクエスト数と合計処理時間を取得します。  
+    ```
+    WHERE request_creation_time >= '2025-05-28T08:00:00.000000Z' --ベンチマーカーの実行時間(UTC)に設定
+    ```
+    の部分では、ベンチマーカーの実行時間から9時間前のUTC時間に設定することで、特定のベンチマーク実行時のログのみを対象にできます。
+
     <details>
     <summary>グループ化クエリ</summary>
 
@@ -109,7 +129,7 @@
     target_processing_time,
     request_creation_time
     FROM alb_access_logs
-    WHERE request_creation_time >= '2025-03-16T10:20:00.000000Z' --ベンチマーカーの実行時間に設定
+    WHERE request_creation_time >= '2025-05-28T08:00:00.000000Z' --ベンチマーカーの実行時間(UTC)に設定
     ),
     grouped_logs AS (
       SELECT 
@@ -134,6 +154,12 @@
     ```
 
     </details>
+
+    ※もし結果が表示されない場合は以下を確認しましょう。
+    - テーブル作成クエリの`<ログフォルダの場所>`が正しく設定されているか
+    - グループ化クエリの`WHERE request_creation_time`は適切な時間に設定されているか
+    - ALBのログがS3バケットに出力されているか
+      - 最大で5分程度の遅延があります
 
 5. 結果の確認
    クエリ結果から、アプリケーションのどの部分に負荷が集中しているか、レスポンスが遅いか、エラーが多いかを特定します。  
