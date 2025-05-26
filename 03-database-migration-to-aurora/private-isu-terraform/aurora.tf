@@ -1,5 +1,5 @@
 resource "aws_rds_cluster" "private_isu_db" {
-  availability_zones                    = ["us-east-1a", "us-east-1c"]
+  availability_zones                    = ["us-east-1a", "us-east-1c", "us-east-1d"]
   cluster_identifier                    = "private-isu-db"
   database_insights_mode                = "advanced"
   database_name                         = "isuconp"

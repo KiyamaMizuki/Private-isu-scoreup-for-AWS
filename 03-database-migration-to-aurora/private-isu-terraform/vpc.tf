@@ -55,7 +55,7 @@ resource "aws_route_table_association" "c" {
 
 resource "aws_db_subnet_group" "private_isu_aurora" {
   name       = "private-isu-mysql-subnet-group"
-  subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id]
+  subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id, aws_subnet.mysql-d.id]
 
   tags = {
     Name = "private-isu aurora subnet group"
@@ -74,4 +74,11 @@ resource "aws_subnet" "mysql-c" {
 
   availability_zone = "us-east-1c"
   cidr_block        = "10.10.11.0/24"
+}
+
+resource "aws_subnet" "mysql-d" {
+  vpc_id = aws_vpc.vpc.id
+
+  availability_zone = "us-east-1d"
+  cidr_block        = "10.10.12.0/24"
 }

@@ -55,7 +55,7 @@ resource "aws_route_table_association" "c" {
 
 resource "aws_db_subnet_group" "private_isu_aurora" {
   name       = "private-isu-mysql-subnet-group"
-  subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id]
+  subnet_ids = [aws_subnet.mysql-a.id, aws_subnet.mysql-c.id, aws_subnet.mysql-d.id]
 
   tags = {
     Name = "private-isu aurora subnet group"
